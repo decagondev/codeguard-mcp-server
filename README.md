@@ -124,22 +124,126 @@ Combined analysis in a single call.
 
 ### Using Different LLM Providers
 
-**Anthropic Claude:**
+DecaGuard supports multiple LLM providers through OpenAI-compatible APIs. Configure your provider by setting the appropriate environment variables in `mcp.json`.
+
+#### OpenAI (Default)
+
 ```json
-"env": {
-  "ANTHROPIC_API_KEY": "sk-ant-...",
-  "LLM_BASE_URL": "https://api.anthropic.com/v1",
-  "LLM_MODEL": "claude-sonnet-4-20250514"
+{
+  "mcpServers": {
+    "decaguard": {
+      "command": "npx",
+      "args": ["-y", "deca-guard-mcp-server"],
+      "env": {
+        "OPENAI_API_KEY": "sk-...",
+        "LLM_MODEL": "gpt-4o-mini"
+      }
+    }
+  }
 }
 ```
 
-**Local Ollama:**
+#### OpenRouter
+
+OpenRouter provides access to multiple models from different providers. Get your API key from [openrouter.ai](https://openrouter.ai).
+
 ```json
-"env": {
-  "LLM_BASE_URL": "http://localhost:11434/v1",
-  "LLM_MODEL": "codellama"
+{
+  "mcpServers": {
+    "decaguard": {
+      "command": "npx",
+      "args": ["-y", "deca-guard-mcp-server"],
+      "env": {
+        "OPENROUTER_API_KEY": "sk-or-v1-...",
+        "LLM_MODEL": "openai/gpt-4o-mini"
+      }
+    }
+  }
 }
 ```
+
+**Popular OpenRouter Models:**
+- `openai/gpt-4o-mini` - Fast and cost-effective
+- `anthropic/claude-3.5-sonnet` - High quality analysis
+- `google/gemini-pro-1.5` - Good balance
+- `meta-llama/llama-3.1-70b-instruct` - Open source option
+
+See all available models at [openrouter.ai/models](https://openrouter.ai/models).
+
+#### Local LLMs (Ollama, LM Studio, etc.)
+
+Run models locally for privacy and cost savings. Works with any OpenAI-compatible API.
+
+**Ollama:**
+```bash
+# Install and run Ollama
+ollama serve
+ollama pull codellama  # or llama2, mistral, etc.
+```
+
+```json
+{
+  "mcpServers": {
+    "decaguard": {
+      "command": "npx",
+      "args": ["-y", "deca-guard-mcp-server"],
+      "env": {
+        "LLM_BASE_URL": "http://localhost:11434/v1",
+        "LLM_MODEL": "codellama"
+      }
+    }
+  }
+}
+```
+
+**LM Studio:**
+```json
+{
+  "mcpServers": {
+    "decaguard": {
+      "command": "npx",
+      "args": ["-y", "deca-guard-mcp-server"],
+      "env": {
+        "LLM_BASE_URL": "http://localhost:1234/v1",
+        "LLM_MODEL": "your-model-name"
+      }
+    }
+  }
+}
+```
+
+**Other Local Providers:**
+- **vLLM**: `http://localhost:8000/v1`
+- **Text Generation WebUI**: `http://localhost:5000/v1`
+- **LocalAI**: `http://localhost:8080/v1`
+
+#### Anthropic Claude
+
+```json
+{
+  "mcpServers": {
+    "decaguard": {
+      "command": "npx",
+      "args": ["-y", "deca-guard-mcp-server"],
+      "env": {
+        "ANTHROPIC_API_KEY": "sk-ant-...",
+        "LLM_BASE_URL": "https://api.anthropic.com/v1",
+        "LLM_MODEL": "claude-3-5-sonnet-20241022"
+      }
+    }
+  }
+}
+```
+
+### Environment Variables Reference
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `OPENAI_API_KEY` | OpenAI API key | - |
+| `OPENROUTER_API_KEY` | OpenRouter API key (takes priority) | - |
+| `ANTHROPIC_API_KEY` | Anthropic API key | - |
+| `LLM_BASE_URL` | Custom base URL for LLM API | Auto-detected for OpenRouter |
+| `LLM_MODEL` | Model name to use | `gpt-4o-mini` or `openai/gpt-4o-mini` (OpenRouter) |
 
 ## Troubleshooting
 

@@ -4,20 +4,59 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import OpenAI from 'openai';
 
 /**
- * OpenAI client instance configured with API key and base URL from environment variables.
- * Supports both OpenAI and Anthropic API keys.
+ * Determines the API key to use based on environment variables.
+ * Priority: OPENROUTER_API_KEY > OPENAI_API_KEY > ANTHROPIC_API_KEY
+ * @returns {string|undefined} API key for the LLM provider
+ */
+function getApiKey() {
+  return (
+    process.env.OPENROUTER_API_KEY ||
+    process.env.OPENAI_API_KEY ||
+    process.env.ANTHROPIC_API_KEY
+  );
+}
+
+/**
+ * Determines the base URL for the LLM API.
+ * If LLM_BASE_URL is set, it takes precedence.
+ * Otherwise, defaults to OpenRouter if OPENROUTER_API_KEY is set.
+ * @returns {string|undefined} Base URL for the LLM API
+ */
+function getBaseURL() {
+  if (process.env.LLM_BASE_URL) {
+    return process.env.LLM_BASE_URL;
+  }
+  if (process.env.OPENROUTER_API_KEY) {
+    return 'https://openrouter.ai/api/v1';
+  }
+  return undefined;
+}
+
+/**
+ * OpenAI-compatible client instance configured with API key and base URL from environment variables.
+ * Supports multiple LLM providers:
+ * - OpenAI (default): Uses OPENAI_API_KEY
+ * - OpenRouter: Uses OPENROUTER_API_KEY with base URL https://openrouter.ai/api/v1
+ * - Local LLMs (Ollama, etc.): Uses LLM_BASE_URL (e.g., http://localhost:11434/v1)
+ * - Anthropic: Uses ANTHROPIC_API_KEY (may require compatible base URL)
  * @type {OpenAI}
  */
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY,
-  baseURL: process.env.LLM_BASE_URL || undefined,
+  apiKey: getApiKey(),
+  baseURL: getBaseURL(),
 });
 
 /**
- * LLM model to use for code analysis. Defaults to 'gpt-4o-mini' if not specified.
+ * LLM model to use for code analysis.
+ * Defaults based on provider:
+ * - OpenAI: 'gpt-4o-mini'
+ * - OpenRouter: 'openai/gpt-4o-mini' (or specify any model from openrouter.ai)
+ * - Local: Model name as configured (e.g., 'codellama', 'llama2', etc.)
  * @type {string}
  */
-const LLM_MODEL = process.env.LLM_MODEL || 'gpt-4o-mini';
+const LLM_MODEL =
+  process.env.LLM_MODEL ||
+  (process.env.OPENROUTER_API_KEY ? 'openai/gpt-4o-mini' : 'gpt-4o-mini');
 
 /**
  * MCP Server for code smell detection and security analysis.
