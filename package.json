@@ -1,0 +1,27 @@
+{
+  "name": "codeguard-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for code smell and security analysis",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "codeguard-mcp-server": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node test/test-client.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "openai": "^6.15.0"
+  },
+  "keywords": [
+    "mcp",
+    "code-analysis",
+    "security",
+    "code-smells"
+  ],
+  "author": "Tom Tarpey",
+  "license": "MIT"
+}

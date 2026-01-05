@@ -1,10 +1,6 @@
 #!/usr/bin/env node
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
 import OpenAI from 'openai';
 
 // Initialize OpenAI client
@@ -17,7 +13,7 @@ const LLM_MODEL = process.env.LLM_MODEL || 'gpt-4o-mini';
 
 class CodeGuardServer {
   constructor() {
-    this.server = new Server(
+    this.server = new McpServer(
       {
         name: 'codeguard-mcp-server',
         version: '1.0.0',
@@ -34,7 +30,7 @@ class CodeGuardServer {
   }
 
   setupErrorHandling() {
-    this.server.onerror = (error) => {
+    this.server.server.onerror = (error) => {
       console.error('[MCP Error]', error);
     };
 
@@ -45,111 +41,132 @@ class CodeGuardServer {
   }
 
   setupHandlers() {
-    // List available tools
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: [
-        {
-          name: 'analyze_code_smells',
-          description:
-            'Analyzes code for common code smells and maintainability issues. Detects long methods, duplicated code, large classes, feature envy, primitive obsession, dead code, magic numbers, and nested conditionals. Returns structured findings with severity, location, and refactoring suggestions.',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              code: {
-                type: 'string',
-                description: 'The code snippet or file content to analyze',
-              },
-              language: {
-                type: 'string',
-                description: 'Programming language (e.g., javascript, python, java)',
-                enum: ['javascript', 'typescript', 'python', 'java', 'go', 'rust'],
-              },
-              filePath: {
-                type: 'string',
-                description: 'Optional file path for context',
-              },
+    // Register tools using the McpServer API
+    this.server.registerTool(
+      'analyze_code_smells',
+      {
+        description:
+          'Analyzes code for common code smells and maintainability issues. Detects long methods, duplicated code, large classes, feature envy, primitive obsession, dead code, magic numbers, and nested conditionals. Returns structured findings with severity, location, and refactoring suggestions.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            code: {
+              type: 'string',
+              description: 'The code snippet or file content to analyze',
             },
-            required: ['code', 'language'],
-          },
-        },
-        {
-          name: 'analyze_security_vulnerabilities',
-          description:
-            'Scans code for security vulnerabilities based on OWASP Top 10. Detects SQL injection, XSS, hardcoded secrets, insecure dependencies, broken authentication, and more. Returns structured vulnerability reports with severity levels (low/medium/high/critical) and mitigation strategies.',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              code: {
-                type: 'string',
-                description: 'The code snippet or file content to analyze',
-              },
-              language: {
-                type: 'string',
-                description: 'Programming language',
-                enum: ['javascript', 'typescript', 'python', 'java', 'go', 'rust'],
-              },
-              filePath: {
-                type: 'string',
-                description: 'Optional file path for context',
-              },
+            language: {
+              type: 'string',
+              description: 'Programming language (e.g., javascript, python, java)',
+              enum: ['javascript', 'typescript', 'python', 'java', 'go', 'rust'],
             },
-            required: ['code', 'language'],
-          },
-        },
-        {
-          name: 'analyze_code_quality_and_security',
-          description:
-            'Combined analysis for both code smells and security vulnerabilities. Provides a comprehensive code quality report in a single call. Ideal for complete code review.',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              code: {
-                type: 'string',
-                description: 'The code snippet or file content to analyze',
-              },
-              language: {
-                type: 'string',
-                description: 'Programming language',
-                enum: ['javascript', 'typescript', 'python', 'java', 'go', 'rust'],
-              },
-              filePath: {
-                type: 'string',
-                description: 'Optional file path for context',
-              },
+            filePath: {
+              type: 'string',
+              description: 'Optional file path for context',
             },
-            required: ['code', 'language'],
           },
+          required: ['code', 'language'],
         },
-      ],
-    }));
-
-    // Handle tool calls
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-
-      try {
-        switch (name) {
-          case 'analyze_code_smells':
-            return await this.analyzeCodeSmells(args);
-          case 'analyze_security_vulnerabilities':
-            return await this.analyzeSecurityVulnerabilities(args);
-          case 'analyze_code_quality_and_security':
-            return await this.analyzeCombined(args);
-          default:
-            throw new Error(`Unknown tool: ${name}`);
+      },
+      async (args) => {
+        try {
+          return await this.analyzeCodeSmells(args);
+        } catch (error) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Error: ${error.message}`,
+              },
+            ],
+            isError: true,
+          };
         }
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Error: ${error.message}`,
-            },
-          ],
-          isError: true,
-        };
       }
-    });
+    );
+
+    this.server.registerTool(
+      'analyze_security_vulnerabilities',
+      {
+        description:
+          'Scans code for security vulnerabilities based on OWASP Top 10. Detects SQL injection, XSS, hardcoded secrets, insecure dependencies, broken authentication, and more. Returns structured vulnerability reports with severity levels (low/medium/high/critical) and mitigation strategies.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            code: {
+              type: 'string',
+              description: 'The code snippet or file content to analyze',
+            },
+            language: {
+              type: 'string',
+              description: 'Programming language',
+              enum: ['javascript', 'typescript', 'python', 'java', 'go', 'rust'],
+            },
+            filePath: {
+              type: 'string',
+              description: 'Optional file path for context',
+            },
+          },
+          required: ['code', 'language'],
+        },
+      },
+      async (args) => {
+        try {
+          return await this.analyzeSecurityVulnerabilities(args);
+        } catch (error) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Error: ${error.message}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+      }
+    );
+
+    this.server.registerTool(
+      'analyze_code_quality_and_security',
+      {
+        description:
+          'Combined analysis for both code smells and security vulnerabilities. Provides a comprehensive code quality report in a single call. Ideal for complete code review.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            code: {
+              type: 'string',
+              description: 'The code snippet or file content to analyze',
+            },
+            language: {
+              type: 'string',
+              description: 'Programming language',
+              enum: ['javascript', 'typescript', 'python', 'java', 'go', 'rust'],
+            },
+            filePath: {
+              type: 'string',
+              description: 'Optional file path for context',
+            },
+          },
+          required: ['code', 'language'],
+        },
+      },
+      async (args) => {
+        try {
+          return await this.analyzeCombined(args);
+        } catch (error) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Error: ${error.message}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+      }
+    );
   }
 
   async analyzeCodeSmells(args) {
@@ -215,7 +232,11 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
       response_format: { type: 'json_object' },
     });
 
-    const analysis = JSON.parse(response.choices[0].message.content);
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No content in OpenAI response');
+    }
+    const analysis = JSON.parse(content);
 
     return {
       content: [
@@ -295,7 +316,11 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
       response_format: { type: 'json_object' },
     });
 
-    const analysis = JSON.parse(response.choices[0].message.content);
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No content in OpenAI response');
+    }
+    const analysis = JSON.parse(content);
 
     return {
       content: [
