@@ -108,9 +108,10 @@ class DecaGuardServer {
    * @private
    */
   setupHandlers() {
-    this.server.registerTool(
-      'analyze_code_smells',
+    // Define tools list
+    this.tools = [
       {
+        name: 'analyze_code_smells',
         description:
           'Analyzes code for common code smells and maintainability issues. Detects long methods, duplicated code, large classes, feature envy, primitive obsession, dead code, magic numbers, and nested conditionals. Returns structured findings with severity, location, and refactoring suggestions.',
         inputSchema: {
@@ -133,26 +134,8 @@ class DecaGuardServer {
           required: ['code', 'language'],
         },
       },
-      async (args) => {
-        try {
-          return await this.analyzeCodeSmells(args);
-        } catch (error) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Error: ${error.message}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-      }
-    );
-
-    this.server.registerTool(
-      'analyze_security_vulnerabilities',
       {
+        name: 'analyze_security_vulnerabilities',
         description:
           'Scans code for security vulnerabilities based on OWASP Top 10. Detects SQL injection, XSS, hardcoded secrets, insecure dependencies, broken authentication, and more. Returns structured vulnerability reports with severity levels (low/medium/high/critical) and mitigation strategies.',
         inputSchema: {
@@ -175,26 +158,8 @@ class DecaGuardServer {
           required: ['code', 'language'],
         },
       },
-      async (args) => {
-        try {
-          return await this.analyzeSecurityVulnerabilities(args);
-        } catch (error) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Error: ${error.message}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-      }
-    );
-
-    this.server.registerTool(
-      'analyze_code_quality_and_security',
       {
+        name: 'analyze_code_quality_and_security',
         description:
           'Combined analysis for both code smells and security vulnerabilities. Provides a comprehensive code quality report in a single call. Ideal for complete code review.',
         inputSchema: {
@@ -217,22 +182,42 @@ class DecaGuardServer {
           required: ['code', 'language'],
         },
       },
-      async (args) => {
-        try {
-          return await this.analyzeCombined(args);
-        } catch (error) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Error: ${error.message}`,
-              },
-            ],
-            isError: true,
-          };
+    ];
+
+    // Handle tools/list request
+    this.server.setRequestHandler('tools/list', async () => {
+      return {
+        tools: this.tools,
+      };
+    });
+
+    // Handle tools/call request
+    this.server.setRequestHandler('tools/call', async (request) => {
+      const { name, arguments: args } = request.params;
+
+      try {
+        switch (name) {
+          case 'analyze_code_smells':
+            return await this.analyzeCodeSmells(args);
+          case 'analyze_security_vulnerabilities':
+            return await this.analyzeSecurityVulnerabilities(args);
+          case 'analyze_code_quality_and_security':
+            return await this.analyzeCombined(args);
+          default:
+            throw new Error(`Unknown tool: ${name}`);
         }
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error: ${error.message}`,
+            },
+          ],
+          isError: true,
+        };
       }
-    );
+    });
   }
 
   /**
