@@ -1,11 +1,11 @@
 {
-  "name": "codeguard-mcp-server",
+  "name": "deca-guard-mcp-server",
   "version": "1.0.0",
   "description": "MCP Server for code smell and security analysis",
   "main": "index.js",
   "type": "module",
   "bin": {
-    "codeguard-mcp-server": "./index.js"
+    "deca-guard-mcp-server": "index.js"
   },
   "files": [
     "index.js",
@@ -36,6 +36,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tomtarpey/codeguard-mcp-server.git"
+    "url": "git+https://github.com/tomtarpey/deca-guard-mcp-server.git"
   }
 }

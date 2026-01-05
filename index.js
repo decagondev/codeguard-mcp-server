@@ -24,15 +24,15 @@ const LLM_MODEL = process.env.LLM_MODEL || 'gpt-4o-mini';
  * Provides tools for analyzing code quality and security vulnerabilities using AI.
  * @class
  */
-class CodeGuardServer {
+class DecaGuardServer {
   /**
-   * Initializes the CodeGuard MCP Server with tool handlers and error handling.
+   * Initializes the DecaGuard MCP Server with tool handlers and error handling.
    * @constructor
    */
   constructor() {
     this.server = new McpServer(
       {
-        name: 'codeguard-mcp-server',
+        name: 'deca-guard-mcp-server',
         version: '1.0.0',
       },
       {
@@ -468,9 +468,9 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('CodeGuard MCP Server running on stdio');
+    console.error('DecaGuard MCP Server running on stdio');
   }
 }
 
-const server = new CodeGuardServer();
+const server = new DecaGuardServer();
 server.run().catch(console.error);

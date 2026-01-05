@@ -2,8 +2,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { spawn } from 'child_process';
 
-async function testCodeGuardServer() {
-  console.log('🧪 Testing CodeGuard MCP Server...\n');
+async function testDecaGuardServer() {
+  console.log('🧪 Testing DecaGuard MCP Server...\n');
 
   // Start the server
   const serverProcess = spawn('node', ['./index.js'], {
@@ -95,4 +95,4 @@ function processUserData(userId, email, password) {
   }
 }
 
-testCodeGuardServer();
+testDecaGuardServer();

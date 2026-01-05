@@ -1,4 +1,4 @@
-# CodeGuard MCP Server
+# DecaGuard MCP Server
 
 AI-powered code smell detection and security analysis server using the Model Context Protocol (MCP).
 
@@ -15,9 +15,9 @@ Edit `~/.cursor/mcp.json` (create if it doesn't exist):
 ```json
 {
   "mcpServers": {
-    "codeguard": {
+    "decaguard": {
       "command": "npx",
-      "args": ["-y", "codeguard-mcp-server"],
+      "args": ["-y", "deca-guard-mcp-server"],
       "env": {
         "OPENAI_API_KEY": "your-api-key-here"
       }
@@ -33,7 +33,7 @@ Completely quit and restart Cursor IDE.
 ### Option 2: Install via npm
 
 ```bash
-npm install -g codeguard-mcp-server
+npm install -g deca-guard-mcp-server
 ```
 
 Then configure `~/.cursor/mcp.json`:
@@ -41,8 +41,8 @@ Then configure `~/.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "codeguard": {
-      "command": "codeguard-mcp-server",
+    "decaguard": {
+      "command": "deca-guard-mcp-server",
       "env": {
         "OPENAI_API_KEY": "your-api-key-here"
       }
@@ -56,8 +56,8 @@ Then configure `~/.cursor/mcp.json`:
 For development or local installation:
 
 ```bash
-git clone https://github.com/tomtarpey/codeguard-mcp-server.git
-cd codeguard-mcp-server
+git clone https://github.com/tomtarpey/deca-guard-mcp-server.git
+cd deca-guard-mcp-server
 npm install
 ```
 
@@ -66,9 +66,9 @@ Then configure `~/.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "codeguard": {
+    "decaguard": {
       "command": "node",
-      "args": ["/absolute/path/to/codeguard-mcp-server/index.js"],
+      "args": ["/absolute/path/to/deca-guard-mcp-server/index.js"],
       "env": {
         "OPENAI_API_KEY": "your-api-key-here"
       }
